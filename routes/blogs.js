@@ -9,7 +9,7 @@ const router = express.Router();
 
 
 router.get("/", async (req, res) => {
-    let perPage = req.query.perPage || 5;
+    let perPage = req.query.perPage || 10;
     let page = req.query.page || 1;
     let sort = req.query.sort || "date_update";
     let reverse = req.query.reverse == "yes" ? 1 : -1;
@@ -59,8 +59,15 @@ router.post("/", auth, async (req, res) => {
         res.status(400).json(validBody.error.details)
     }
     try {
+        
         let blog = new BlogModel(req.body);
         blog.user_id = req.tokenData._id;
+        const updateUser = await UserModel.findByIdAndUpdate(
+            { _id: req.tokenData._id },
+            { $push: { blogs: blog._id } },
+            { new: true }
+
+        );
         let user = await UserModel.findOne({ _id: blog.user_id });
         console.log(user);
         blog.userName= user.name;
